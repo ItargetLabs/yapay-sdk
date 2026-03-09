@@ -42,14 +42,45 @@ final class PixClient extends YapayBaseClient
             $body = $this->createTransaction($payload);
             $data = $this->transactionData($body);
             $transaction = $this->transactionDetails($body);
+            $payment = $transaction['payment'] ?? [];
 
             $statusId = (int) ($data['status_id'] ?? $transaction['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
             $transactionId = (string) ($data['transaction_id'] ?? $transaction['transaction_id'] ?? '');
-            $qrCodeImage = (string) ($data['qr_code'] ?? $transaction['qr_code'] ?? '');
-            $qrCodeText = (string) ($data['qr_code_text'] ?? $transaction['qr_code_text'] ?? '');
-            $pixCopyPaste = (string) ($data['pix_copy_paste'] ?? $transaction['pix_copy_paste'] ?? $qrCodeText);
-            $expiresInMinutes = (int) ($data['expires_in'] ?? $transaction['expires_in'] ?? 0);
+            
+            $qrCodeImage = (string) (
+                $data['qr_code'] 
+                ?? $transaction['qr_code'] 
+                ?? $payment['qrcode_path'] 
+                ?? ''
+            );
+            
+            $qrCodeText = (string) (
+                $data['qr_code_text'] 
+                ?? $transaction['qr_code_text'] 
+                ?? $payment['qrcode_original_path'] 
+                ?? ''
+            );
+            
+            $pixCopyPaste = (string) (
+                $data['pix_copy_paste'] 
+                ?? $transaction['pix_copy_paste'] 
+                ?? $payment['qrcode_original_path'] 
+                ?? $qrCodeText
+            );
+
+            $expiresAt = $transaction['max_days_to_keep_waiting_payment'] ?? null;
+            $expiresInMinutes = 0;
+            if ($expiresAt) {
+                $expiresAtDate = new \DateTime($expiresAt);
+                $now = new \DateTime();
+                $diff = $now->diff($expiresAtDate);
+                $expiresInMinutes = ($diff->days * 24 * 60) + ($diff->h * 60) + $diff->i;
+            }
+
+            if ($expiresInMinutes === 0) {
+                $expiresInMinutes = (int) ($data['expires_in'] ?? $transaction['expires_in'] ?? 0);
+            }
 
             return new PixResponse(
                 tid: $transactionId,
@@ -80,11 +111,17 @@ final class PixClient extends YapayBaseClient
             $body = $this->getTransactionById($pixId);
             $data = $this->transactionData($body);
             $transaction = $this->transactionDetails($body);
+            $payment = $transaction['payment'] ?? [];
 
             $statusId = (int) ($data['status_id'] ?? $transaction['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
-            $amount = (float) ($data['price_payment'] ?? $transaction['price_payment'] ?? 0);
-            $pixCopyPaste = (string) ($data['pix_copy_paste'] ?? $transaction['pix_copy_paste'] ?? '');
+            $amount = (float) ($data['price_payment'] ?? $transaction['price_payment'] ?? $payment['price_payment'] ?? 0);
+            $pixCopyPaste = (string) (
+                $data['pix_copy_paste'] 
+                ?? $transaction['pix_copy_paste'] 
+                ?? $payment['qrcode_original_path'] 
+                ?? ''
+            );
 
             return new PixStatusResponse(
                 status: $status,

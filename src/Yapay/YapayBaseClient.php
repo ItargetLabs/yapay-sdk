@@ -154,11 +154,21 @@ class YapayBaseClient
     protected function request(string $method, string $path, array $options): array
     {
         try {
+            // Log do payload enviado para depuração
+            if (isset($options['json'])) {
+                // error_log("PAYLOAD SENT: " . json_encode($options['json']));
+            }
+
             $response = $this->httpClient->request($method, $path, $options);
             $decoded = json_decode((string) $response->getBody(), true);
             return is_array($decoded) ? $decoded : [];
         } catch (GuzzleException $e) {
-            throw new Exception($e->getMessage(), (int) $e->getCode(), $e);
+            $message = $e->getMessage();
+            if (method_exists($e, 'getResponse') && $e->getResponse()) {
+                $body = (string) $e->getResponse()->getBody();
+                $message .= " | Response Body: " . $body;
+            }
+            throw new Exception($message, (int) $e->getCode(), $e);
         }
     }
 
@@ -198,19 +208,25 @@ class YapayBaseClient
         $address = $this->buildAddress($customer);
         $contactPhone = preg_replace('/\D/', '', (string) ($customer->phone ?? ''));
 
-        return [
-            'contacts' => array_filter([
-                $contactPhone ? [
-                    'type_contact' => 'M',
-                    'number_contact' => $contactPhone,
-                ] : null,
-            ]),
+        $payload = [
             'addresses' => $address ? [$address] : [],
             'name' => $customer->name,
             'birth_date' => null,
             'cpf' => preg_replace('/\D/', '', (string) ($customer->document ?? '')),
             'email' => $customer->email,
         ];
+
+        // Se houver um telefone válido (mínimo 10 dígitos), adiciona ao payload
+        if (strlen($contactPhone) >= 10) {
+            $payload['contacts'] = [
+                [
+                    'type_contact' => 'M',
+                    'number_contact' => $contactPhone,
+                ]
+            ];
+        }
+
+        return $payload;
     }
 
     protected function buildTransactionProduct(
@@ -268,7 +284,7 @@ class YapayBaseClient
 
         return [
             'type_address' => 'B',
-            'postal_code' => $customer->address->zipCode,
+            'postal_code' => preg_replace('/\D/', '', $customer->address->zipCode),
             'street' => $customer->address->street,
             'number' => $customer->address->number,
             'completion' => $customer->address->complement ?? '',
