@@ -76,8 +76,8 @@ $pixResponse = $yapay->createPixCharge(new PixRequest(
 
 ```php
 <?php
-$lookup = $yapay->getTransactionByToken('cb22c716c80ddbaa16f8b8dbc49302a2');
-$parsed = Yapay::parseTransactionLookup($lookup);
+$status = $yapay->getBankData('cb22c716c80ddbaa16f8b8dbc49302a2');
+echo "Link do Boleto: " . $status->url . PHP_EOL;
 ```
 
 ### Facade (Cartão e Boleto)

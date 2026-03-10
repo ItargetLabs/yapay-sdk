@@ -51,22 +51,14 @@ final class BankClient extends YapayBaseClient
             $body = $this->createTransaction($payload);
             $data = $this->transactionData($body);
             $transaction = $this->transactionDetails($body);
+            $payment = $transaction['payment'] ?? [];
 
-            $statusId = (int) ($data['status_id'] ?? $transaction['status_id'] ?? 4);
+            $statusId = (int) ($transaction['status_id'] ?? $data['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
-            $transactionId = (string) ($data['transaction_id'] ?? $transaction['transaction_id'] ?? '');
-            $digitableLine = (string) ($data['digitable_line'] ?? $transaction['digitable_line'] ?? '');
-            $barCode = (string) ($data['bar_code'] ?? $transaction['bar_code'] ?? '');
-            $paymentUrl = (string) ($data['url_payment'] ?? $transaction['url_payment'] ?? '');
-
-            $paramsUrl = [
-                'number' => $request->number,
-                'accountReceiveIds' => $request->metadata['accountReceiveIds'] ?? [],
-                'gatewayId' => $request->metadata['gatewayId'] ?? null,
-                'externalUrl' => $paymentUrl,
-            ];
-            $token = base64_encode(json_encode($paramsUrl, JSON_THROW_ON_ERROR));
-            $baseUrl = rtrim($this->getBaseUrl(), '/');
+            $transactionId = (string) ($transaction['transaction_id'] ?? $data['transaction_id'] ?? '');
+            $digitableLine = (string) ($payment['linha_digitavel'] ?? $transaction['digitable_line'] ?? $data['digitable_line'] ?? '');
+            $barCode = (string) ($payment['bar_code'] ?? $transaction['bar_code'] ?? $data['bar_code'] ?? '');
+            $paymentUrl = (string) ($payment['url_payment'] ?? $transaction['url_payment'] ?? $data['url_payment'] ?? '');
 
             return new BankResponse(
                 tid: $transactionId,
@@ -75,9 +67,7 @@ final class BankClient extends YapayBaseClient
                 currency: $request->currency,
                 digitableLine: $digitableLine,
                 barCode: $barCode,
-                url: $baseUrl !== ''
-                    ? $baseUrl . '/api/payments/bank/print?' . http_build_query(['token' => $token])
-                    : $paymentUrl,
+                url: $paymentUrl,
                 hash: $transactionId,
                 authorizationCode: null,
                 gatewayResponse: $body
@@ -87,7 +77,7 @@ final class BankClient extends YapayBaseClient
         }
     }
 
-    public function getBankDataByToken(string $tokenTransaction): BankStatusResponse
+    public function getBankData(string $tokenTransaction): BankStatusResponse
     {
         try {
             $body = $this->getTransactionByToken($tokenTransaction);
