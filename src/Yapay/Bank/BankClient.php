@@ -108,6 +108,7 @@ final class BankClient extends YapayBaseClient
             $amount = (float) ($data['price_payment'] ?? $transaction['price_payment'] ?? 0);
             $digitableLine = $data['digitable_line'] ?? $transaction['digitable_line'] ?? null;
             $barCode = $data['bar_code'] ?? $transaction['bar_code'] ?? null;
+            $paymentUrl = $data['url_payment'] ?? $transaction['url_payment'] ?? null;
 
             return new BankStatusResponse(
                 status: $status,
@@ -119,6 +120,7 @@ final class BankClient extends YapayBaseClient
                 tid: $bankId,
                 digitableLine: is_string($digitableLine) ? $digitableLine : null,
                 barCode: is_string($barCode) ? $barCode : null,
+                url: is_string($paymentUrl) ? $paymentUrl : null,
                 bankNumber: null,
                 rawResponse: $body
             );

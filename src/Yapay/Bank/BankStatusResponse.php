@@ -19,6 +19,7 @@ final class BankStatusResponse
         public readonly ?string $tid = null,
         public readonly ?string $digitableLine = null,
         public readonly ?string $barCode = null,
+        public readonly ?string $url = null,
         public readonly ?string $bankNumber = null,
         public readonly ?DateTime $dueDate = null,
         public readonly ?DateTime $issueDate = null,
