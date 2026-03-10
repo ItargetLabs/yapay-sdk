@@ -87,25 +87,6 @@ final class BankClient extends YapayBaseClient
         }
     }
 
-    public function isBankPaid(string $bankId): bool
-    {
-        try {
-            return $this->getBankData($bankId)->isCompleted();
-        } catch (Exception) {
-            return false;
-        }
-    }
-
-    public function getBankData(string $bankId): BankStatusResponse
-    {
-        try {
-            $body = $this->getTransactionById($bankId);
-            return $this->mapBankStatusResponse($body, $bankId);
-        } catch (Exception $e) {
-            throw new Exception('Erro ao consultar boleto na Yapay: ' . $e->getMessage(), (int) $e->getCode(), $e);
-        }
-    }
-
     public function getBankDataByToken(string $tokenTransaction): BankStatusResponse
     {
         try {
