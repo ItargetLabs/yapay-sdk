@@ -243,10 +243,9 @@ class YapayBaseClient
 
     protected function buildTransactionPayload(
         array $metadata,
-        string $availablePaymentMethods,
-        array $affiliates = []
+        string $availablePaymentMethods
     ): array {
-        $payload = [
+        return [
             'available_payment_methods' => $availablePaymentMethods,
             'customer_ip' => $metadata['customer_ip'] ?? '127.0.0.1',
             'shipping_type' => $metadata['shipping_type'] ?? '',
@@ -255,21 +254,6 @@ class YapayBaseClient
             'url_notification' => $metadata['url_notification'] ?? '',
             'free' => $metadata['free'] ?? '',
         ];
-
-        // Yapay split nao esta padronizado neste SDK; se o integrador enviar a
-        // estrutura crua via metadata, ela eh repassada sem transformar.
-        if (!empty($metadata['split_rules']) && is_array($metadata['split_rules'])) {
-            $payload['split_rules'] = $metadata['split_rules'];
-        } elseif (!empty($affiliates)) {
-            $payload['split_rules'] = array_map(
-                static fn($affiliate) => is_object($affiliate) && method_exists($affiliate, 'toArray')
-                    ? $affiliate->toArray()
-                    : (array) $affiliate,
-                $affiliates
-            );
-        }
-
-        return $payload;
     }
 
     protected function buildAddress(Customer $customer): ?array

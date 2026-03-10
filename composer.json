@@ -2,7 +2,7 @@
   "name": "devsitarget/sdk-yapay-php",
   "description": "SDK PHP para integração com Yapay (Boleto, Pix, Cartão e consulta de transações)",
   "type": "library",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "MIT",
   "require": {
     "php": ">=8.1",

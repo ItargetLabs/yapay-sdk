@@ -35,8 +35,13 @@ final class CreditCardClient extends YapayBaseClient
             ),
             'transaction' => $this->buildTransactionPayload(
                 metadata: $request->metadata,
-                availablePaymentMethods: '2,3,4,5,6,7,14,15,16,18,19,21,22,23',
-                affiliates: $request->affiliates
+                availablePaymentMethods: '2,3,4,5,6,7,14,15,16,18,19,21,22,23'
+            ),
+            'affiliates' => array_map(
+                static fn($affiliate) => is_object($affiliate) && method_exists($affiliate, 'toArray')
+                    ? $affiliate->toArray()
+                    : (array) $affiliate,
+                $request->affiliates
             ),
             'payment' => [
                 'payment_method_id' => '3',
@@ -49,6 +54,11 @@ final class CreditCardClient extends YapayBaseClient
                 'card_holder_doc' => preg_replace('/\D/', '', (string) ($request->customer->document ?? '')),
             ],
         ];
+
+        // Limpa affiliates se vazio para não enviar array vazio
+        if (empty($payload['affiliates'])) {
+            unset($payload['affiliates']);
+        }
 
         try {
             $body = $this->createTransaction($payload);
