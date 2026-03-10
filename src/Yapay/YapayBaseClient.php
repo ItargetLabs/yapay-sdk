@@ -116,10 +116,12 @@ class YapayBaseClient
     public static function mapYapayStatus(int $statusId): PaymentStatus
     {
         return match ($statusId) {
+            4 => PaymentStatus::WAITING_PAYMENT,
             6 => PaymentStatus::APPROVED,
             7 => PaymentStatus::CANCELLED,
-            89 => PaymentStatus::REJECTED,
-            4, 5, 24, 87, 88 => PaymentStatus::PENDING,
+            24 => PaymentStatus::CONTESTATION,
+            87 => PaymentStatus::MONITORING,
+            89 => PaymentStatus::FAILED,
             default => PaymentStatus::PENDING,
         };
     }

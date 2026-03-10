@@ -11,4 +11,7 @@ enum PaymentStatus: string
     case CANCELLED = 'cancelled';
     case REJECTED = 'rejected';
     case FAILED = 'failed';
+    case WAITING_PAYMENT = 'waiting_payment';
+    case CONTESTATION = 'contestation';
+    case MONITORING = 'monitoring';
 }
