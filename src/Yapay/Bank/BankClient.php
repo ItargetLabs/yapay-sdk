@@ -56,6 +56,7 @@ final class BankClient extends YapayBaseClient
             $statusId = (int) ($transaction['status_id'] ?? $data['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
             $transactionId = (string) ($transaction['transaction_id'] ?? $data['transaction_id'] ?? '');
+            $tokenTransaction = (string) ($transaction['token_transaction'] ?? $data['token_transaction'] ?? '');
             $digitableLine = (string) ($payment['linha_digitavel'] ?? $transaction['digitable_line'] ?? $data['digitable_line'] ?? '');
             $barCode = (string) ($payment['bar_code'] ?? $transaction['bar_code'] ?? $data['bar_code'] ?? '');
             $paymentUrl = (string) ($payment['url_payment'] ?? $transaction['url_payment'] ?? $data['url_payment'] ?? '');
@@ -68,7 +69,7 @@ final class BankClient extends YapayBaseClient
                 digitableLine: $digitableLine,
                 barCode: $barCode,
                 url: $paymentUrl,
-                hash: $transactionId,
+                hash: $tokenTransaction,
                 authorizationCode: null,
                 gatewayResponse: $body
             );
