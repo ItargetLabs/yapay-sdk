@@ -154,11 +154,6 @@ class YapayBaseClient
     protected function request(string $method, string $path, array $options): array
     {
         try {
-            // Log do payload enviado para depuração
-            if (isset($options['json'])) {
-                // error_log("PAYLOAD SENT: " . json_encode($options['json']));
-            }
-
             $response = $this->httpClient->request($method, $path, $options);
             $decoded = json_decode((string) $response->getBody(), true);
             return is_array($decoded) ? $decoded : [];
@@ -218,6 +213,7 @@ class YapayBaseClient
 
         // Se houver um telefone válido (mínimo 10 dígitos), adiciona ao payload
         if (strlen($contactPhone) >= 10) {
+            $payload['phone'] = $contactPhone;
             $payload['contacts'] = [
                 [
                     'type_contact' => 'M',

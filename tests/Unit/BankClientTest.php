@@ -51,7 +51,7 @@ final class BankClientTest extends TestCase
             dueDate: new DateTime('2026-03-10'),
             number: '123',
             metadata: [],
-            affiliates: [new BillAffiliate(1, 50.0, 2)]
+            affiliates: [new BillAffiliate('affiliate@test.com', 50)]
         ));
 
         $this->assertSame('tx-bank-1', $response->tid);
@@ -60,9 +60,8 @@ final class BankClientTest extends TestCase
         $payload = json_decode((string) $history[0]['request']->getBody(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame('token_account', $payload['token_account']);
         $this->assertCount(1, $payload['transaction']['split_rules']);
-        $this->assertSame(1, $payload['transaction']['split_rules'][0]['affiliate_id']);
-        $this->assertEquals(50.0, $payload['transaction']['split_rules'][0]['amount']);
-        $this->assertSame(2, $payload['transaction']['split_rules'][0]['amount_type']);
+        $this->assertSame('affiliate@test.com', $payload['transaction']['split_rules'][0]['account_email']);
+        $this->assertSame(50, $payload['transaction']['split_rules'][0]['percentage']);
     }
 
     private function customer(): Customer

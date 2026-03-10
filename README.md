@@ -109,8 +109,8 @@ As requests aceitam `affiliates` via objetos `BillAffiliate` (mesma ideia do SDK
 use YapaySdk\BillAffiliate;
 
 $affiliates = [
-    new BillAffiliate(affiliateId: 2425, amount: 50.0, amountType: 2), // 50%
-    new BillAffiliate(affiliateId: 3000, amount: 10.0, amountType: 1), // R$ 10,00
+    new BillAffiliate(accountEmail: 'teste@itarget.com.br', percentage: 50), // 50%
+    new BillAffiliate(accountEmail: 'outro@test.com', commissionAmount: 10.0), // R$ 10,00
 ];
 ```
 

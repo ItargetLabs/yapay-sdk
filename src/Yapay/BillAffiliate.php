@@ -7,18 +7,31 @@ namespace YapaySdk;
 final class BillAffiliate
 {
     public function __construct(
-        public readonly int $affiliateId,
-        public readonly float $amount,
-        public readonly int $amountType
+        public readonly string $accountEmail,
+        public readonly ?int $percentage = null,
+        public readonly ?float $commissionAmount = null,
+        public readonly ?string $typeAffiliate = null
     ) {
     }
 
     public function toArray(): array
     {
-        return [
-            'affiliate_id' => $this->affiliateId,
-            'amount' => $this->amount,
-            'amount_type' => $this->amountType,
+        $data = [
+            'account_email' => $this->accountEmail,
         ];
+
+        if ($this->percentage !== null) {
+            $data['percentage'] = $this->percentage;
+        }
+
+        if ($this->commissionAmount !== null) {
+            $data['commission_amount'] = $this->commissionAmount;
+        }
+
+        if ($this->typeAffiliate !== null) {
+            $data['type_affiliate'] = $this->typeAffiliate;
+        }
+
+        return $data;
     }
 }
