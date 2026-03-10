@@ -75,6 +75,12 @@ final class Yapay
         return $client->getBankData($transactionId);
     }
 
+    public function getBankDataByToken(string $tokenTransaction): BankStatusResponse
+    {
+        $client = new BankClient($this->store, $this->httpClient);
+        return $client->getBankDataByToken($tokenTransaction);
+    }
+
     public function checkPixStatus(string $transactionId): PixStatusResponse
     {
         $client = new PixClient($this->store, $this->httpClient);

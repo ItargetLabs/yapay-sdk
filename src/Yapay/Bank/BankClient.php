@@ -100,33 +100,50 @@ final class BankClient extends YapayBaseClient
     {
         try {
             $body = $this->getTransactionById($bankId);
-            $data = $this->transactionData($body);
-            $transaction = $this->transactionDetails($body);
-
-            $statusId = (int) ($data['status_id'] ?? $transaction['status_id'] ?? 4);
-            $status = self::mapYapayStatus($statusId);
-            $amount = (float) ($data['price_payment'] ?? $transaction['price_payment'] ?? 0);
-            $digitableLine = $data['digitable_line'] ?? $transaction['digitable_line'] ?? null;
-            $barCode = $data['bar_code'] ?? $transaction['bar_code'] ?? null;
-            $paymentUrl = $data['url_payment'] ?? $transaction['url_payment'] ?? null;
-
-            return new BankStatusResponse(
-                status: $status,
-                transactionId: $bankId,
-                amount: $amount,
-                feeAmount: 0.0,
-                authorizationCode: null,
-                nsu: null,
-                tid: $bankId,
-                digitableLine: is_string($digitableLine) ? $digitableLine : null,
-                barCode: is_string($barCode) ? $barCode : null,
-                url: is_string($paymentUrl) ? $paymentUrl : null,
-                bankNumber: null,
-                rawResponse: $body
-            );
+            return $this->mapBankStatusResponse($body, $bankId);
         } catch (Exception $e) {
             throw new Exception('Erro ao consultar boleto na Yapay: ' . $e->getMessage(), (int) $e->getCode(), $e);
         }
+    }
+
+    public function getBankDataByToken(string $tokenTransaction): BankStatusResponse
+    {
+        try {
+            $body = $this->getTransactionByToken($tokenTransaction);
+            return $this->mapBankStatusResponse($body);
+        } catch (Exception $e) {
+            throw new Exception('Erro ao consultar boleto na Yapay via token: ' . $e->getMessage(), (int) $e->getCode(), $e);
+        }
+    }
+
+    private function mapBankStatusResponse(array $body, ?string $fallbackId = null): BankStatusResponse
+    {
+        $data = $this->transactionData($body);
+        $transaction = $this->transactionDetails($body);
+        $payment = $transaction['payment'] ?? [];
+
+        $statusId = (int) ($transaction['status_id'] ?? $data['status_id'] ?? 4);
+        $status = self::mapYapayStatus($statusId);
+        $amount = (float) ($payment['price_payment'] ?? $transaction['price_payment'] ?? $data['price_payment'] ?? 0);
+        $transactionId = (string) ($transaction['transaction_id'] ?? $data['transaction_id'] ?? $fallbackId ?? '');
+        $digitableLine = $payment['linha_digitavel'] ?? $transaction['digitable_line'] ?? $data['digitable_line'] ?? null;
+        $barCode = $payment['bar_code'] ?? $transaction['bar_code'] ?? $data['bar_code'] ?? null;
+        $paymentUrl = $payment['url_payment'] ?? $transaction['url_payment'] ?? $data['url_payment'] ?? null;
+
+        return new BankStatusResponse(
+            status: $status,
+            transactionId: $transactionId,
+            amount: $amount,
+            feeAmount: 0.0,
+            authorizationCode: null,
+            nsu: (string) ($payment['tid'] ?? ''),
+            tid: $transactionId,
+            digitableLine: is_string($digitableLine) ? $digitableLine : null,
+            barCode: is_string($barCode) ? $barCode : null,
+            url: is_string($paymentUrl) ? $paymentUrl : null,
+            bankNumber: (string) ($payment['payment_method_id'] ?? ''),
+            rawResponse: $body
+        );
     }
 
     public function getBankFile(string $bankId, array $searchParams = []): array
