@@ -65,48 +65,21 @@ class YapayBaseClient
 
     public static function parseSettlementWebhook(array $payload): array
     {
-        $transaction = is_array($payload['transaction'] ?? null)
-            ? $payload['transaction']
-            : [];
-        $payment = is_array($transaction['payment'] ?? null)
-            ? $transaction['payment']
-            : [];
-
-        $statusRaw = (string) (
-            $transaction['status_name']
-            ?? $transaction['status_id']
-            ?? $payment['payment_response']
-            ?? ''
-        );
-        $paymentMethodRaw = (string) (
-            $payment['payment_method_id']
-            ?? $transaction['payment_method_id']
-            ?? $payment['payment_method_name']
-            ?? $transaction['payment_method_name']
-            ?? ''
-        );
-
-        $dateTransaction = (string) ($transaction['date_transaction'] ?? '');
-        $dateLow = (string) (
-            $payment['date_approval']
-            ?? $payment['date_payment']
-            ?? $transaction['date_payment']
-            ?? $dateTransaction
-        );
+        $transaction = $payload['transaction'] ?? [];
+        $payment = $transaction['payment'] ?? [];
+        $statusRaw = $transaction['status_id'] ?? $transaction['status_name'] ?? null;
+        $paymentMethodRaw = $payment['payment_method_id'] ?? $transaction['payment_method_id'] ?? null;
+        $dateTransaction = $transaction['date_transaction'] ?? null;
+        $dateLow = $payment['date_approval'] ?? $payment['date_payment'] ?? $transaction['date_payment'] ?? null;
 
         return [
             'tid' => (string) ($transaction['transaction_id'] ?? ''),
             'transactionId' => (string) ($transaction['order_number'] ?? ''),
-            'tokenTransaction' => (string) (
-                $payload['token_transaction']
-                ?? $transaction['token_transaction']
-                ?? $transaction['transaction_token']
-                ?? ''
-            ),
-            'paymentMethodCode' => self::normalizePaymentMethod($paymentMethodRaw),
-            'statusCode' => self::normalizeStatus($statusRaw),
-            'lowDate' => self::parseDate($dateLow),
-            'occurrenceDate' => self::parseDate($dateTransaction),
+            'tokenTransaction' => (string) ($payload['token_transaction'] ?? $transaction['token_transaction'] ?? ''),
+            'paymentMethodCode' => self::normalizePaymentMethod((string) $paymentMethodRaw),
+            'statusCode' => self::normalizeStatus((string) $statusRaw),
+            'lowDate' => self::parseDate((string) $dateLow),
+            'occurrenceDate' => self::parseDate((string) $dateTransaction),
             'rawPayload' => $payload,
         ];
     }
