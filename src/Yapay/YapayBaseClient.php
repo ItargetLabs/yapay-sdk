@@ -74,15 +74,15 @@ class YapayBaseClient
 
         return [
             'tid' => (string) ($transaction['transaction_id'] ?? ''),
-            'transactionId' => (string) ($transaction['order_number'] ?? ''),
-            'tokenTransaction' => (string) ($payload['token_transaction'] ?? $transaction['token_transaction'] ?? ''),
+            'transactionId' => (string) ($transaction['transaction_id'] ?? ''),
+            'tokenTransaction' => (string) ($transaction['token_transaction'] ?? ''),
             'paymentMethodCode' => self::normalizePaymentMethod((string) $paymentMethodRaw),
             'statusCode' => self::normalizeStatus((string) $statusRaw),
             'lowDate' => self::parseDate((string) $dateLow),
             'occurrenceDate' => self::parseDate((string) $dateTransaction),
-            'authorizationCode' => (string) ($payment['authorization_code'] ?? $transaction['authorization_code'] ?? ''),
-            'nsu' => (string) ($payment['nsu'] ?? $transaction['nsu'] ?? ''),
-            'installments' => (int) ($payment['split'] ?? $transaction['split'] ?? 1),
+            'authorizationCode' => (string) ($payment['payment_response_code'] ?? ''),
+            'nsu' => (string) ($payment['number_proccess'] ?? ''),
+            'installments' => (int) ($payment['split'] ?? 1),
             'rawPayload' => $payload,
         ];
     }
@@ -107,11 +107,14 @@ class YapayBaseClient
         return [
             ...$fallback,
             'tid' => (string) ($transaction['transaction_id'] ?? ($fallback['tid'] ?? '')),
-            'transactionId' => (string) ($transaction['order_number'] ?? ($fallback['transactionId'] ?? '')),
+            'transactionId' => (string) ($transaction['transaction_id'] ?? ($fallback['transactionId'] ?? '')),
             'paymentMethodCode' => self::normalizePaymentMethod($paymentMethodRaw),
             'statusCode' => self::normalizeStatus($statusRaw),
             'lowDate' => self::parseDate($dateLow),
             'occurrenceDate' => self::parseDate($dateTransaction),
+            'authorizationCode' => (string) ($payment['payment_response_code'] ?? ''),
+            'nsu' => (string) ($payment['number_proccess'] ?? ''),
+            'installments' => (int) ($payment['split'] ?? 1),
             'apiResponse' => $lookupResponse,
         ];
     }
