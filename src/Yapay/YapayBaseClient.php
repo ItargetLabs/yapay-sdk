@@ -80,6 +80,9 @@ class YapayBaseClient
             'statusCode' => self::normalizeStatus((string) $statusRaw),
             'lowDate' => self::parseDate((string) $dateLow),
             'occurrenceDate' => self::parseDate((string) $dateTransaction),
+            'authorizationCode' => (string) ($payment['authorization_code'] ?? $transaction['authorization_code'] ?? ''),
+            'nsu' => (string) ($payment['nsu'] ?? $transaction['nsu'] ?? ''),
+            'installments' => (int) ($payment['split'] ?? $transaction['split'] ?? 1),
             'rawPayload' => $payload,
         ];
     }
