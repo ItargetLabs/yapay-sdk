@@ -182,7 +182,7 @@ class YapayBaseClient
     protected function buildCustomerPayload(Customer $customer): array
     {
         $address = $this->buildAddress($customer);
-        $contactPhone = preg_replace('/\D/', '', (string) ($customer->phone ?? ''));
+        $contactPhone = $this->sanitizePhone($customer->phone);
 
         $payload = [
             'addresses' => $address ? [$address] : [],
@@ -192,8 +192,8 @@ class YapayBaseClient
             'email' => $customer->email,
         ];
 
-        // Se houver um telefone válido (mínimo 10 dígitos), adiciona ao payload
-        if (strlen($contactPhone) >= 10) {
+        // Se houver um telefone válido, adiciona ao payload
+        if ($contactPhone) {
             $payload['phone'] = $contactPhone;
             $payload['contacts'] = [
                 [
@@ -204,6 +204,18 @@ class YapayBaseClient
         }
 
         return $payload;
+    }
+
+    private function sanitizePhone(?string $phone): ?string
+    {
+        if (!$phone) {
+            return null;
+        }
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+        if (str_starts_with($phone, '55') && strlen($phone) > 11) {
+            $phone = substr($phone, 2);
+        }
+        return $phone;
     }
 
     protected function buildTransactionProduct(
@@ -245,7 +257,7 @@ class YapayBaseClient
 
         return [
             'type_address' => 'B',
-            'postal_code' => preg_replace('/\D/', '', $customer->address->zipCode),
+            'postal_code' => preg_replace('/[^0-9]/', '', $customer->address->zipCode),
             'street' => $customer->address->street,
             'number' => $customer->address->number,
             'completion' => $customer->address->complement ?? '',
