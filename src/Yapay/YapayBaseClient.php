@@ -281,6 +281,12 @@ class YapayBaseClient
             return 'bank_slip';
         }
 
+        // Mapeamento de cartões de crédito (IDs comuns na Yapay: 3, 4, 5, 14, 15, 16, 18, 19, 21, 22, 23)
+        $creditCardIds = ['3', '4', '5', '14', '15', '16', '18', '19', '21', '22', '23'];
+        if (in_array($normalized, $creditCardIds) || str_contains($normalized, 'cartao') || str_contains($normalized, 'credit')) {
+            return 'credit_card';
+        }
+
         return 'bank_slip';
     }
 
