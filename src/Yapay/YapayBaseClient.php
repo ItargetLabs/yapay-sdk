@@ -142,7 +142,29 @@ class YapayBaseClient
             $message = $e->getMessage();
             if (method_exists($e, 'getResponse') && $e->getResponse()) {
                 $body = (string) $e->getResponse()->getBody();
-                $message .= " | Response Body: " . $body;
+                $decoded = json_decode($body, true);
+                
+                if (is_array($decoded) && isset($decoded['error_response'])) {
+                    $errors = [];
+                    
+                    // Erros de validação (ex: campos obrigatórios)
+                    if (!empty($decoded['error_response']['validation_errors'])) {
+                        foreach ($decoded['error_response']['validation_errors'] as $error) {
+                            $errors[] = $error['message_complete'] ?? $error['message'] ?? 'Erro desconhecido';
+                        }
+                    }
+                    
+                    // Erros gerais
+                    if (!empty($decoded['error_response']['general_errors'])) {
+                        foreach ($decoded['error_response']['general_errors'] as $error) {
+                            $errors[] = $error['message'] ?? 'Erro desconhecido';
+                        }
+                    }
+                    
+                    if (!empty($errors)) {
+                        $message = implode(' | ', $errors);
+                    }
+                }
             }
             throw new Exception($message, (int) $e->getCode(), $e);
         }

@@ -106,7 +106,7 @@ final class PixClient extends YapayBaseClient
                 gatewayResponse: $body
             );
         } catch (Exception $e) {
-            throw new Exception('Erro ao gerar cobranca PIX na Yapay: ' . $e->getMessage(), (int) $e->getCode(), $e);
+            throw new Exception($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 
@@ -147,7 +147,7 @@ final class PixClient extends YapayBaseClient
                 rawResponse: $body
             );
         } catch (Exception $e) {
-            throw new Exception('Erro ao consultar PIX na Yapay: ' . $e->getMessage(), (int) $e->getCode(), $e);
+            throw new Exception($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 

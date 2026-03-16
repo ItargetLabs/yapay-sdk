@@ -86,7 +86,7 @@ final class CreditCardClient extends YapayBaseClient
                 gatewayResponse: $body + ['data_response' => $data]
             );
         } catch (Exception $e) {
-            throw new Exception('Erro ao processar pagamento na Yapay: ' . $e->getMessage(), (int) $e->getCode(), $e);
+            throw new Exception($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 
