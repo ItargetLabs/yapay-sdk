@@ -39,6 +39,7 @@ final class BankClient extends YapayBaseClient
             ),
             'payment' => [
                 'payment_method_id' => '6',
+                'billet_date_expiration' => $request->dueDate->format('d/m/Y'),
             ],
         ];
 
