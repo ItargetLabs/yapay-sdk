@@ -58,9 +58,125 @@ class YapayBaseClient
         );
     }
 
+    /**
+     * Lista transações da conta (GET /api/v3/sales).
+     * Requer ACCESS_TOKEN. O retorno inclui transaction_token para consulta detalhada.
+     *
+     * Filtros comuns: id, page, per_page.
+     *
+     * @param array<string, scalar|null> $filters
+     */
+    public function listTransactions(array $filters = [], ?string $accessToken = null): array
+    {
+        $query = [];
+
+        foreach ($filters as $key => $value) {
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $query[$key] = is_bool($value) ? ($value ? '1' : '0') : $value;
+        }
+
+        $query['access_token'] = $this->resolveAccessToken($accessToken);
+        $query['type_response'] = 'J';
+
+        return $this->request(
+            'GET',
+            'api/v3/sales',
+            [
+                'headers' => [
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ],
+                'query' => $query,
+            ]
+        );
+    }
+
+    public function generateAccessToken(
+        string $consumerKey,
+        string $consumerSecret,
+        string $code
+    ): array {
+        if ($consumerKey === '' || $consumerSecret === '' || $code === '') {
+            throw new DomainException('consumerKey, consumerSecret and code are required');
+        }
+
+        $response = $this->request(
+            'POST',
+            'api/authorizations/access_token',
+            [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'consumer_key' => $consumerKey,
+                    'consumer_secret' => $consumerSecret,
+                    'code' => $code,
+                    'type_response' => 'J',
+                ],
+            ]
+        );
+
+        $this->persistAccessToken($response);
+
+        return $response;
+    }
+
+    public function refreshAccessToken(?string $accessToken = null, ?string $refreshToken = null): array
+    {
+        $token = $this->resolveAccessToken($accessToken);
+
+        if ($refreshToken === null || $refreshToken === '') {
+            throw new DomainException('refreshToken is required');
+        }
+
+        $response = $this->request(
+            'POST',
+            'api/v1/authorizations/refresh',
+            [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    'access_token' => $token,
+                    'refresh_token' => $refreshToken,
+                    'type_response' => 'J',
+                ],
+            ]
+        );
+
+        $this->persistAccessToken($response);
+
+        return $response;
+    }
+
     public function getTokenAccount(): string
     {
         return $this->store->getTokenAccount();
+    }
+
+    private function resolveAccessToken(?string $accessToken): string
+    {
+        $token = $accessToken ?? $this->store->getAccessToken() ?? '';
+
+        if ($token === '') {
+            throw new DomainException('accessToken is required');
+        }
+
+        return $token;
+    }
+
+    private function persistAccessToken(array $response): void
+    {
+        $dataResponse = $response['data_response'] ?? [];
+        $authorization = is_array($dataResponse) ? ($dataResponse['authorization'] ?? []) : [];
+        $token = is_array($authorization) ? ($authorization['access_token'] ?? null) : null;
+
+        if (is_string($token) && $token !== '') {
+            $this->store->setAccessToken($token);
+        }
     }
 
     public static function parseSettlementWebhook(array $payload): array

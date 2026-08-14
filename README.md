@@ -8,6 +8,7 @@ SDK de integração com Yapay (Boleto, Pix, Cartão de Crédito), com consulta d
 - Cartão de crédito: criação e cobrança (inclui parcelamento)
 - Boleto: emissão e consulta de dados
 - Consulta de transação por `token_transaction` / `transaction_id`
+- Listagem de transações (`GET /api/v3/sales`, requer `ACCESS_TOKEN`)
 - Mapeamento de status de pagamento e parser de webhook de liquidação
 
 ## Requisitos
@@ -31,7 +32,8 @@ use YapaySdk\Yapay;
 
 $store = new Store(
     tokenAccount: 'SEU_TOKEN_ACCOUNT',
-    environment: Environment::sandbox() // ou Environment::production()
+    environment: Environment::sandbox(), // ou Environment::production()
+    accessToken: 'SEU_ACCESS_TOKEN' // opcional; necessário para listar transações
 );
 
 $yapay = new Yapay($store);
@@ -80,6 +82,33 @@ $status = $yapay->getBankData('cb22c716c80ddbaa16f8b8dbc49302a2');
 echo "Link do Boleto: " . $status->url . PHP_EOL;
 ```
 
+### Listar transações
+
+Essa API exige `ACCESS_TOKEN` (não o `token_account`). O retorno traz o `transaction_token`, que pode ser usado em `getTransactionByToken()` para o detalhe completo.
+
+```php
+<?php
+$lista = $yapay->listTransactions([
+    'page' => 1,
+    'per_page' => 20,
+    // 'id' => '1727671', // opcional: uma transação específica
+]);
+
+foreach ($lista['data'] as $sale) {
+    echo $sale['id'] . ' ' . $sale['transaction_token'] . PHP_EOL;
+}
+
+$detalhe = $yapay->getTransactionByToken($lista['data'][0]['transaction_token']);
+```
+
+Para gerar ou renovar o token:
+
+```php
+<?php
+$yapay->generateAccessToken('CONSUMER_KEY', 'CONSUMER_SECRET', 'CODE');
+$yapay->refreshAccessToken(refreshToken: 'SEU_REFRESH_TOKEN');
+```
+
 ### Facade (Cartão e Boleto)
 
 O facade também expõe:
@@ -91,6 +120,8 @@ O facade também expõe:
 - `checkPixStatus()`
 - `getPixPayload()`
 - `checkPaymentStatus()`
+- `listTransactions()`
+- `generateAccessToken()` / `refreshAccessToken()`
 
 ### Webhook de liquidação
 

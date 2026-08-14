@@ -37,6 +37,30 @@ final class Yapay
         return $client->getTransactionById($transactionId);
     }
 
+    /**
+     * @param array<string, scalar|null> $filters
+     */
+    public function listTransactions(array $filters = [], ?string $accessToken = null): array
+    {
+        $client = new YapayBaseClient($this->store, $this->httpClient);
+        return $client->listTransactions($filters, $accessToken);
+    }
+
+    public function generateAccessToken(
+        string $consumerKey,
+        string $consumerSecret,
+        string $code
+    ): array {
+        $client = new YapayBaseClient($this->store, $this->httpClient);
+        return $client->generateAccessToken($consumerKey, $consumerSecret, $code);
+    }
+
+    public function refreshAccessToken(?string $accessToken = null, ?string $refreshToken = null): array
+    {
+        $client = new YapayBaseClient($this->store, $this->httpClient);
+        return $client->refreshAccessToken($accessToken, $refreshToken);
+    }
+
     public function createCreditCardPayment(CreditCardRequest $request): CreditCardResponse
     {
         $client = new CreditCardClient($this->store, $this->httpClient);

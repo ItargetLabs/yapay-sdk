@@ -13,9 +13,13 @@ class StoreTest extends TestCase
     public function testGetters(): void
     {
         $env = Environment::sandbox();
-        $store = new Store('token_abc', $env);
+        $store = new Store('token_abc', $env, 'access_xyz');
 
         $this->assertSame('token_abc', $store->getTokenAccount());
         $this->assertSame($env, $store->getEnvironment());
+        $this->assertSame('access_xyz', $store->getAccessToken());
+
+        $store->setAccessToken('access_new');
+        $this->assertSame('access_new', $store->getAccessToken());
     }
 }

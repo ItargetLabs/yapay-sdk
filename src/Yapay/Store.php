@@ -8,7 +8,8 @@ final class Store
 {
     public function __construct(
         private readonly string $tokenAccount,
-        private readonly Environment $environment
+        private readonly Environment $environment,
+        private ?string $accessToken = null
     ) {
     }
 
@@ -20,5 +21,15 @@ final class Store
     public function getEnvironment(): Environment
     {
         return $this->environment;
+    }
+
+    public function getAccessToken(): ?string
+    {
+        return $this->accessToken;
+    }
+
+    public function setAccessToken(?string $accessToken): void
+    {
+        $this->accessToken = $accessToken;
     }
 }
