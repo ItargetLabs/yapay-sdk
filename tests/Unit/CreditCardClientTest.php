@@ -26,6 +26,7 @@ final class CreditCardClientTest extends TestCase
                 'data_response' => [
                     'transaction' => [
                         'transaction_id' => 'cc-1',
+                        'token_transaction' => 'tok-cc-1',
                         'status_id' => 6,
                         'price_payment' => 150.0,
                         'split' => 3,
@@ -59,6 +60,8 @@ final class CreditCardClientTest extends TestCase
         ));
 
         $this->assertSame('cc-1', $response->tid);
+        $this->assertSame('tok-cc-1', $response->tokenTransaction);
+        $this->assertSame('tok-cc-1', $response->hash);
         $this->assertSame(3, $response->installments);
         $this->assertSame(50.0, $response->installmentAmount);
         $this->assertSame('nsu-1', $response->nsu);

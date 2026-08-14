@@ -28,6 +28,7 @@ final class BankClientTest extends TestCase
             new Response(200, [], json_encode([
                 'data_response' => [
                     'transaction_id' => 'tx-bank-1',
+                    'token_transaction' => 'tok-bank-1',
                     'status_id' => 4,
                     'digitable_line' => '111',
                     'bar_code' => '222',
@@ -55,6 +56,8 @@ final class BankClientTest extends TestCase
         ));
 
         $this->assertSame('tx-bank-1', $response->tid);
+        $this->assertSame('tok-bank-1', $response->tokenTransaction);
+        $this->assertSame('tok-bank-1', $response->hash);
         $this->assertCount(1, $history);
 
         $payload = json_decode((string) $history[0]['request']->getBody(), true, 512, JSON_THROW_ON_ERROR);

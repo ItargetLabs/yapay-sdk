@@ -24,6 +24,7 @@ final class PixClientTest extends TestCase
             new Response(200, [], json_encode([
                 'data_response' => [
                     'transaction_id' => 'pix-1',
+                    'token_transaction' => 'tok-pix-1',
                     'status_id' => 4,
                     'qr_code' => 'base64-image',
                     'qr_code_text' => 'pix-code',
@@ -48,6 +49,8 @@ final class PixClientTest extends TestCase
         ));
 
         $this->assertSame('pix-1', $response->tid);
+        $this->assertSame('tok-pix-1', $response->tokenTransaction);
+        $this->assertSame('tok-pix-1', $response->hash);
         $this->assertSame('pix-copy-paste', $response->pixCopyPaste);
         $this->assertSame(60, $response->expiresInMinutes);
     }

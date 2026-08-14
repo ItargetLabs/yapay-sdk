@@ -20,6 +20,7 @@ final class PixStatusResponse
         public readonly ?DateTime $occurrenceDate,
         public readonly ?DateTime $lowDate,
         public readonly ?string $pixCopyPaste,
+        public readonly string $tokenTransaction = '',
         public readonly array $rawResponse = []
     ) {
     }

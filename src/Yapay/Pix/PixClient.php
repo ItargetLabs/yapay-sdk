@@ -57,6 +57,7 @@ final class PixClient extends YapayBaseClient
             $statusId = (int) ($data['status_id'] ?? $transaction['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
             $transactionId = (string) ($data['transaction_id'] ?? $transaction['transaction_id'] ?? '');
+            $tokenTransaction = $this->extractTokenTransaction($transaction, $data);
             
             $qrCodeImage = (string) (
                 $data['qr_code'] 
@@ -94,9 +95,11 @@ final class PixClient extends YapayBaseClient
 
             return new PixResponse(
                 tid: $transactionId,
+                tokenTransaction: $tokenTransaction,
                 status: $status,
                 amount: $request->amount,
                 currency: $request->currency,
+                hash: $tokenTransaction,
                 pixId: $transactionId,
                 qrCode: $qrCodeImage,
                 qrCodeText: $qrCodeText,
@@ -125,6 +128,7 @@ final class PixClient extends YapayBaseClient
 
             $statusId = (int) ($data['status_id'] ?? $transaction['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
+            $tokenTransaction = $this->extractTokenTransaction($transaction, $data);
             $amount = (float) ($data['price_payment'] ?? $transaction['price_payment'] ?? $payment['price_payment'] ?? 0);
             $pixCopyPaste = (string) (
                 $data['pix_copy_paste'] 
@@ -144,6 +148,7 @@ final class PixClient extends YapayBaseClient
                 occurrenceDate: null,
                 lowDate: null,
                 pixCopyPaste: $pixCopyPaste,
+                tokenTransaction: $tokenTransaction,
                 rawResponse: $body
             );
         } catch (Exception $e) {

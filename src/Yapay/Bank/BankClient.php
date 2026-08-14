@@ -57,13 +57,14 @@ final class BankClient extends YapayBaseClient
             $statusId = (int) ($transaction['status_id'] ?? $data['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
             $transactionId = (string) ($transaction['transaction_id'] ?? $data['transaction_id'] ?? '');
-            $tokenTransaction = (string) ($transaction['token_transaction'] ?? $data['token_transaction'] ?? '');
+            $tokenTransaction = $this->extractTokenTransaction($transaction, $data);
             $digitableLine = (string) ($payment['linha_digitavel'] ?? $transaction['digitable_line'] ?? $data['digitable_line'] ?? '');
             $barCode = (string) ($payment['bar_code'] ?? $transaction['bar_code'] ?? $data['bar_code'] ?? '');
             $paymentUrl = (string) ($payment['url_payment'] ?? $transaction['url_payment'] ?? $data['url_payment'] ?? '');
 
             return new BankResponse(
                 tid: $transactionId,
+                tokenTransaction: $tokenTransaction,
                 status: $status,
                 amount: $request->amount,
                 currency: $request->currency,
@@ -99,6 +100,7 @@ final class BankClient extends YapayBaseClient
         $status = self::mapYapayStatus($statusId);
         $amount = (float) ($payment['price_payment'] ?? $transaction['price_payment'] ?? $data['price_payment'] ?? 0);
         $transactionId = (string) ($transaction['transaction_id'] ?? $data['transaction_id'] ?? $fallbackId ?? '');
+        $tokenTransaction = $this->extractTokenTransaction($transaction, $data);
         $digitableLine = $payment['linha_digitavel'] ?? $transaction['digitable_line'] ?? $data['digitable_line'] ?? null;
         $barCode = $payment['bar_code'] ?? $transaction['bar_code'] ?? $data['bar_code'] ?? null;
         $paymentUrl = $payment['url_payment'] ?? $transaction['url_payment'] ?? $data['url_payment'] ?? null;
@@ -115,6 +117,7 @@ final class BankClient extends YapayBaseClient
             barCode: is_string($barCode) ? $barCode : null,
             url: is_string($paymentUrl) ? $paymentUrl : null,
             bankNumber: (string) ($payment['payment_method_id'] ?? ''),
+            tokenTransaction: $tokenTransaction,
             rawResponse: $body
         );
     }

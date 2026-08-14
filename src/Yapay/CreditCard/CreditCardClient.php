@@ -68,6 +68,7 @@ final class CreditCardClient extends YapayBaseClient
             $statusId = (int) ($transaction['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
             $transactionId = (string) ($transaction['transaction_id'] ?? $transaction['tid'] ?? '');
+            $tokenTransaction = $this->extractTokenTransaction($transaction, $data);
             $amount = (float) ($transaction['price_payment'] ?? $request->amount);
             $nsu = $transaction['nsu'] ?? null;
             $authorizationCode = $transaction['authorization_code'] ?? null;
@@ -76,9 +77,11 @@ final class CreditCardClient extends YapayBaseClient
 
             return new CreditCardResponse(
                 tid: $transactionId,
+                tokenTransaction: $tokenTransaction,
                 status: $status,
                 amount: $amount,
                 currency: $request->currency,
+                hash: $tokenTransaction,
                 nsu: is_string($nsu) ? $nsu : null,
                 installments: $installments > 1 ? $installments : null,
                 installmentAmount: $installments > 1 ? $installmentAmount : null,

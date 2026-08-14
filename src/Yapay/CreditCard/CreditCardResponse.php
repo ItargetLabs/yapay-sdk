@@ -10,9 +10,11 @@ final class CreditCardResponse
 {
     public function __construct(
         public readonly string $tid,
+        public readonly string $tokenTransaction,
         public readonly PaymentStatus $status,
         public readonly float $amount,
         public readonly string $currency,
+        public readonly string $hash,
         public readonly ?string $nsu = null,
         public readonly ?int $installments = null,
         public readonly ?float $installmentAmount = null,

@@ -25,6 +25,7 @@ final class BankStatusResponse
         public readonly ?DateTime $issueDate = null,
         public readonly ?DateTime $occurrenceDate = null,
         public readonly ?DateTime $lowDate = null,
+        public readonly string $tokenTransaction = '',
         public readonly array $rawResponse = []
     ) {
     }

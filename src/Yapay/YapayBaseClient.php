@@ -309,6 +309,17 @@ class YapayBaseClient
         return is_array($transaction) ? $transaction : [];
     }
 
+    protected function extractTokenTransaction(array $transaction, array $data = []): string
+    {
+        return (string) (
+            $transaction['token_transaction']
+            ?? $data['token_transaction']
+            ?? $transaction['transaction_token']
+            ?? $data['transaction_token']
+            ?? ''
+        );
+    }
+
     public function checkPaymentStatus(string $transactionId): PaymentStatus
     {
         $response = $this->getTransactionById($transactionId);

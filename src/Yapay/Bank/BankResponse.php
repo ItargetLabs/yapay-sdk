@@ -10,6 +10,7 @@ final class BankResponse
 {
     public function __construct(
         public readonly string $tid,
+        public readonly string $tokenTransaction,
         public readonly PaymentStatus $status,
         public readonly float $amount,
         public readonly string $currency,

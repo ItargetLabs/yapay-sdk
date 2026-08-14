@@ -10,9 +10,11 @@ final class PixResponse
 {
     public function __construct(
         public readonly string $tid,
+        public readonly string $tokenTransaction,
         public readonly PaymentStatus $status,
         public readonly float $amount,
         public readonly string $currency,
+        public readonly string $hash,
         public readonly string $pixId,
         public readonly string $qrCode,
         public readonly string $qrCodeText,
