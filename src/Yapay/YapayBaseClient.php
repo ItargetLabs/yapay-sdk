@@ -191,7 +191,7 @@ class YapayBaseClient
         return [
             'tid' => (string) ($transaction['transaction_id'] ?? ''),
             'transactionId' => (string) ($transaction['transaction_id'] ?? ''),
-            'tokenTransaction' => (string) ($transaction['token_transaction'] ?? ''),
+            'tokenTransaction' => (string) ($transaction['token_transaction'] ?? $payload['token_transaction'] ?? ''),
             'paymentMethodCode' => self::normalizePaymentMethod((string) $paymentMethodRaw),
             'statusCode' => self::normalizeStatus((string) $statusRaw),
             'lowDate' => self::parseDate((string) $dateLow),
@@ -203,17 +203,9 @@ class YapayBaseClient
         ];
     }
 
-    public static function parseTransactionLookup(array $lookupResponse, array $fallback = []): array
+    public function parseTransactionLookup(array $lookupResponse, array $fallback = []): array
     {
-        $dataResponse = is_array($lookupResponse['data_response'] ?? null)
-            ? $lookupResponse['data_response']
-            : [];
-        $transaction = is_array($dataResponse['transaction'] ?? null)
-            ? $dataResponse['transaction']
-            : [];
-        $payment = is_array($transaction['payment'] ?? null)
-            ? $transaction['payment']
-            : [];
+        [, $transaction, $payment] = $this->lookupParts($lookupResponse);
 
         $statusRaw = (string) ($transaction['status_name'] ?? $transaction['status_id'] ?? '');
         $paymentMethodRaw = (string) ($payment['payment_method_id'] ?? $payment['payment_method_name'] ?? '');
@@ -231,8 +223,88 @@ class YapayBaseClient
             'authorizationCode' => (string) ($payment['payment_response_code'] ?? ''),
             'nsu' => (string) ($payment['number_proccess'] ?? ''),
             'installments' => (int) ($payment['split'] ?? 1),
+            'amount' => $this->lookupAmount($lookupResponse),
+            'digitableLine' => $this->lookupDigitableLine($lookupResponse),
+            'barCode' => $this->lookupBarCode($lookupResponse),
+            'pixCopyPaste' => $this->lookupPixCopyPaste($lookupResponse),
             'apiResponse' => $lookupResponse,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public function lookupAmount(array $raw): float
+    {
+        [$data, $transaction, $payment] = $this->lookupParts($raw);
+
+        return (float) ($payment['price_payment'] ?? $transaction['price_payment'] ?? $data['price_payment'] ?? 0);
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public function lookupDigitableLine(array $raw): ?string
+    {
+        [$data, $transaction, $payment] = $this->lookupParts($raw);
+        $digitableLine = (string) (
+            $payment['linha_digitavel']
+            ?? $transaction['digitable_line']
+            ?? $data['digitable_line']
+            ?? ''
+        );
+
+        return $digitableLine !== '' ? $digitableLine : null;
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public function lookupBarCode(array $raw): ?string
+    {
+        [$data, $transaction, $payment] = $this->lookupParts($raw);
+        $barCode = (string) (
+            $payment['bar_code']
+            ?? $transaction['bar_code']
+            ?? $data['bar_code']
+            ?? ''
+        );
+
+        return $barCode !== '' ? $barCode : null;
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public function lookupPixCopyPaste(array $raw): ?string
+    {
+        [$data, $transaction, $payment] = $this->lookupParts($raw);
+        $pixCopyPaste = (string) (
+            $data['pix_copy_paste']
+            ?? $transaction['pix_copy_paste']
+            ?? $payment['qrcode_original_path']
+            ?? ''
+        );
+
+        return $pixCopyPaste !== '' ? $pixCopyPaste : null;
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     *
+     * @return array{0: array<string, mixed>, 1: array<string, mixed>, 2: array<string, mixed>}
+     */
+    private function lookupParts(array $raw): array
+    {
+        $data = is_array($raw['data_response'] ?? null) ? $raw['data_response'] : $raw;
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        $transaction = is_array($data['transaction'] ?? null) ? $data['transaction'] : [];
+        $payment = is_array($transaction['payment'] ?? null) ? $transaction['payment'] : [];
+
+        return [$data, $transaction, $payment];
     }
 
     public static function mapYapayStatus(int $statusId): PaymentStatus

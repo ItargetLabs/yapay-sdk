@@ -58,8 +58,8 @@ final class BankClient extends YapayBaseClient
             $status = self::mapYapayStatus($statusId);
             $transactionId = (string) ($transaction['transaction_id'] ?? $data['transaction_id'] ?? '');
             $tokenTransaction = $this->extractTokenTransaction($transaction, $data);
-            $digitableLine = (string) ($payment['linha_digitavel'] ?? $transaction['digitable_line'] ?? $data['digitable_line'] ?? '');
-            $barCode = (string) ($payment['bar_code'] ?? $transaction['bar_code'] ?? $data['bar_code'] ?? '');
+            $digitableLine = $this->lookupDigitableLine($body) ?? '';
+            $barCode = $this->lookupBarCode($body) ?? '';
             $paymentUrl = (string) ($payment['url_payment'] ?? $transaction['url_payment'] ?? $data['url_payment'] ?? '');
 
             return new BankResponse(
@@ -98,23 +98,20 @@ final class BankClient extends YapayBaseClient
 
         $statusId = (int) ($transaction['status_id'] ?? $data['status_id'] ?? 4);
         $status = self::mapYapayStatus($statusId);
-        $amount = (float) ($payment['price_payment'] ?? $transaction['price_payment'] ?? $data['price_payment'] ?? 0);
         $transactionId = (string) ($transaction['transaction_id'] ?? $data['transaction_id'] ?? $fallbackId ?? '');
         $tokenTransaction = $this->extractTokenTransaction($transaction, $data);
-        $digitableLine = $payment['linha_digitavel'] ?? $transaction['digitable_line'] ?? $data['digitable_line'] ?? null;
-        $barCode = $payment['bar_code'] ?? $transaction['bar_code'] ?? $data['bar_code'] ?? null;
         $paymentUrl = $payment['url_payment'] ?? $transaction['url_payment'] ?? $data['url_payment'] ?? null;
 
         return new BankStatusResponse(
             status: $status,
             transactionId: $transactionId,
-            amount: $amount,
+            amount: $this->lookupAmount($body),
             feeAmount: 0.0,
             authorizationCode: null,
             nsu: (string) ($payment['tid'] ?? ''),
             tid: $transactionId,
-            digitableLine: is_string($digitableLine) ? $digitableLine : null,
-            barCode: is_string($barCode) ? $barCode : null,
+            digitableLine: $this->lookupDigitableLine($body),
+            barCode: $this->lookupBarCode($body),
             url: is_string($paymentUrl) ? $paymentUrl : null,
             bankNumber: (string) ($payment['payment_method_id'] ?? ''),
             tokenTransaction: $tokenTransaction,

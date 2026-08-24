@@ -73,12 +73,7 @@ final class PixClient extends YapayBaseClient
                 ?? ''
             );
             
-            $pixCopyPaste = (string) (
-                $data['pix_copy_paste'] 
-                ?? $transaction['pix_copy_paste'] 
-                ?? $payment['qrcode_original_path'] 
-                ?? $qrCodeText
-            );
+            $pixCopyPaste = $this->lookupPixCopyPaste($body) ?? $qrCodeText;
 
             $expiresAt = $transaction['max_days_to_keep_waiting_payment'] ?? null;
             $expiresInMinutes = 0;
@@ -124,18 +119,12 @@ final class PixClient extends YapayBaseClient
             $body = $this->getTransactionById($pixId);
             $data = $this->transactionData($body);
             $transaction = $this->transactionDetails($body);
-            $payment = $transaction['payment'] ?? [];
 
             $statusId = (int) ($data['status_id'] ?? $transaction['status_id'] ?? 4);
             $status = self::mapYapayStatus($statusId);
             $tokenTransaction = $this->extractTokenTransaction($transaction, $data);
-            $amount = (float) ($data['price_payment'] ?? $transaction['price_payment'] ?? $payment['price_payment'] ?? 0);
-            $pixCopyPaste = (string) (
-                $data['pix_copy_paste'] 
-                ?? $transaction['pix_copy_paste'] 
-                ?? $payment['qrcode_original_path'] 
-                ?? ''
-            );
+            $amount = $this->lookupAmount($body);
+            $pixCopyPaste = $this->lookupPixCopyPaste($body);
 
             return new PixStatusResponse(
                 status: $status,

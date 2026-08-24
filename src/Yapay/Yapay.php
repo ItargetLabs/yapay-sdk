@@ -116,8 +116,45 @@ final class Yapay
         return YapayBaseClient::parseSettlementWebhook($payload);
     }
 
-    public static function parseTransactionLookup(array $lookupResponse, array $fallback = []): array
+    public function parseTransactionLookup(array $lookupResponse, array $fallback = []): array
     {
-        return YapayBaseClient::parseTransactionLookup($lookupResponse, $fallback);
+        $client = new YapayBaseClient($this->store, $this->httpClient);
+        return $client->parseTransactionLookup($lookupResponse, $fallback);
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public function lookupAmount(array $raw): float
+    {
+        $client = new YapayBaseClient($this->store, $this->httpClient);
+        return $client->lookupAmount($raw);
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public function lookupDigitableLine(array $raw): ?string
+    {
+        $client = new YapayBaseClient($this->store, $this->httpClient);
+        return $client->lookupDigitableLine($raw);
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public function lookupBarCode(array $raw): ?string
+    {
+        $client = new YapayBaseClient($this->store, $this->httpClient);
+        return $client->lookupBarCode($raw);
+    }
+
+    /**
+     * @param array<string, mixed> $raw
+     */
+    public function lookupPixCopyPaste(array $raw): ?string
+    {
+        $client = new YapayBaseClient($this->store, $this->httpClient);
+        return $client->lookupPixCopyPaste($raw);
     }
 }
